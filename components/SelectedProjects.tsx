@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import LightboxPhoto, { rememberPreview } from "./LightboxPhoto";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { MoveUpRight } from "lucide-react";
 import { projects, projectGroups } from "@/lib/site";
@@ -39,6 +40,7 @@ export default function SelectedProjects() {
   };
   const open = (index: number, target: HTMLButtonElement) => {
     opener.current = target;
+    rememberPreview(items[index], target);
     setExpanded(index);
     dialog.current?.showModal();
   };
@@ -79,7 +81,7 @@ export default function SelectedProjects() {
       </div>)}
       <dialog ref={dialog} className="lightbox" aria-label="Dettaglio della selezione" onCancel={close} onClose={() => setExpanded(null)} onClick={event => { if (event.target === event.currentTarget) close(); }} onKeyDown={event => { if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); move(event.key === "ArrowLeft" ? -1 : 1); } }}>
         <button className="lightbox-close" onClick={close} aria-label="Chiudi immagine">✕</button>
-        {large && <><div className="lightbox-image"><Image src={`/images/${large.image}.webp`} alt={large.alt} fill sizes="95vw" quality={85} /></div><div className="lightbox-bottom"><div><p className="eyebrow">{large.category}</p><p>{large.title}</p></div>{items.length > 1 && <div className="lightbox-navigation"><button onClick={() => move(-1)} aria-label="Immagine precedente">←</button><span>{(expanded ?? 0) + 1} / {items.length}</span><button onClick={() => move(1)} aria-label="Immagine successiva">→</button></div>}</div></>}
+        {large && <><LightboxPhoto key={large.image} photo={large} previous={items[((expanded ?? 0) - 1 + items.length) % items.length]} next={items[((expanded ?? 0) + 1) % items.length]} /><div className="lightbox-bottom"><div><p className="eyebrow">{large.category}</p><p>{large.title}</p></div>{items.length > 1 && <div className="lightbox-navigation"><button onClick={() => move(-1)} aria-label="Immagine precedente">←</button><span>{(expanded ?? 0) + 1} / {items.length}</span><button onClick={() => move(1)} aria-label="Immagine successiva">→</button></div>}</div></>}
       </dialog>
     </section>
   );

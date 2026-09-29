@@ -12,6 +12,7 @@ import { projects, projectGroups } from "@/lib/site";
 import {MoveUpRight} from "lucide-react";
 
 import { galleryCells } from "@/lib/gallery-layout.mjs";
+import LightboxPhoto, { rememberPreview, warmPhoto } from "./LightboxPhoto";
 
 const filters = [{ id: "tutte", label: "Tutte", categories: [] as string[] }, ...projectGroups];
 
@@ -112,6 +113,7 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
   const show = (i: number, target: HTMLElement) => {
     if (drag.current.moved) return;
     opener.current = target;
+    rememberPreview(items[i], target);
     setSelected(i);
     dialog.current?.showModal();
   };
@@ -196,6 +198,8 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
                   className="gallery-item"
                   key={`${key}:${p.image}`}
                   tabIndex={-1}
+                  onPointerEnter={e => { if (e.pointerType === "mouse" && !drag.current.active) warmPhoto(p); }}
+                  onFocus={() => warmPhoto(p)}
                   style={{ left, top, width, height }}
                   onClick={(e) => {
                     if (e.detail === 0) drag.current.moved = false;
@@ -263,15 +267,9 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
         </button>
         {project && (
           <>
-            <div className="lightbox-image">
-              <Image
-                src={`/images/${project.image}.webp`}
-                alt={project.alt}
-                fill
-                sizes="95vw"
-                quality={85}
-              />
-            </div>
+            <LightboxPhoto key={project.image} photo={project}
+              previous={items[((selected ?? 0) - 1 + items.length) % items.length]}
+              next={items[((selected ?? 0) + 1) % items.length]} />
             <div className="lightbox-bottom">
               <div>
                 <p className="eyebrow">{project.category}</p>
