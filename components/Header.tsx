@@ -38,7 +38,7 @@ export default function Header() {
         document.body.style.overflow = "hidden";
         return () => {
             document.body.style.overflow = old;
-            button?.focus();
+            button?.focus({preventScroll: true});
         };
     }, [open]);
     const close = () => {

@@ -50,7 +50,11 @@ const selected = {
   residential: "Vista 4.png",
   "kitchen-detail": "Cucina v.1 tip.7.png",
 };
-for (const [name, file] of Object.entries(selected)) {
+const additionalProjects = JSON.parse(await fs.readFile('lib/additional-projects.json', 'utf8'));
+const allImages = { ...selected, ...Object.fromEntries(additionalProjects.map(p => [p.image, p.source])) };
+const missing = files.filter(file => !Object.values(allImages).includes(file));
+if (missing.length) throw new Error(`Images missing from gallery: ${missing.join(', ')}`);
+for (const [name, file] of Object.entries(allImages)) {
   await sharp(source + file)
     .resize({ width: 1920, withoutEnlargement: true })
     .webp({ quality: 84 })
@@ -61,7 +65,7 @@ await sharp(source + selected.living)
   .jpeg({ quality: 85 })
   .toFile("public/images/og.jpg");
 console.log(
-  `Prepared ${Object.keys(selected).length} images and contact sheet.`,
+  `Prepared ${Object.keys(allImages).length} images and contact sheet. All ${files.length} supplied photos are covered.`,
 );
 
 const icon = await sharp('app/icon.svg').resize(32, 32).png().toBuffer();

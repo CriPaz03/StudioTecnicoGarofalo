@@ -1,0 +1,19 @@
+[
+  {"image":"bathroom-day","source":"Bagno 1 tip.3.png","title":"Bagno con doccia in vetro","category":"Bagni","alt":"Bagno luminoso con doccia in vetro, rivestimenti grigi e sanitari sospesi"},
+  {"image":"bathroom-narrow","source":"Bagno 1 v.1 tip.7.png","title":"Bagno dai toni naturali","category":"Bagni","alt":"Bagno con specchio rotondo, lavabo e finestra sul fondo"},
+  {"image":"bedroom-day","source":"Matrimoniale v.1 tip. 3.png","title":"Camera matrimoniale luminosa","category":"Camere","alt":"Camera matrimoniale con quadro sopra il letto, comodini e luce naturale"},
+  {"image":"single-day","source":"Singola 1 v.1 tip.3.png","title":"Camera singola con zona studio","category":"Camere","alt":"Camera singola con letto, scrivania in legno e mensole a parete"},
+  {"image":"living-track","source":"Soggiorno tip. 5.png","title":"Living con illuminazione a binario","category":"Living","alt":"Soggiorno con divano, parete TV e faretti su binari a soffitto"},
+  {"image":"living-bright","source":"Soggiorno v.1 tip.3.png","title":"Living in luce naturale","category":"Living","alt":"Soggiorno luminoso con parete TV chiara, camino e tavolino"},
+  {"image":"living-grey","source":"Soggiorno v1 v.png","title":"Living con divano grigio","category":"Living","alt":"Soggiorno con divano grigio, tavolino e lampadario a sfere"},
+  {"image":"living-open","source":"Soggiorno V1.png","title":"Zona giorno aperta","category":"Interni","alt":"Ambiente aperto con tavolo da pranzo, divano e parete TV illuminata"},
+  {"image":"living-wide","source":"Soggiorno Via valenzuolo.png","title":"Soggiorno e zona pranzo","category":"Interni","alt":"Vista ampia del soggiorno con zona pranzo accanto alle finestre e divano centrale"},
+  {"image":"living-detail","source":"Via Valenzuolo v2.png","title":"Dettagli della zona giorno","category":"Living","alt":"Soggiorno con divano chiaro, parete TV retroilluminata e tavolo da pranzo"},
+  {"image":"residential-street","source":"Vista 1 persone sfocate.png","title":"Prospetto dalla strada","category":"Esterni","alt":"Edificio residenziale contemporaneo visto dalla strada con passanti sfocati"},
+  {"image":"residential-day","source":"Vista 11.png","title":"Volumi e terrazze","category":"Residenziale","alt":"Vista prospettica di edificio residenziale con balconi, terrazze e rivestimenti in legno"},
+  {"image":"terrace-living","source":"Vista 20.png","title":"Spazio esterno arredato","category":"Esterni","alt":"Terrazza residenziale con divano da esterno, tavolino e piante"},
+  {"image":"garden","source":"Vista 23.png","title":"Giardino residenziale","category":"Esterni","alt":"Giardino con prato, arbusti e vegetazione lungo un muro chiaro"},
+  {"image":"residential-aerial","source":"Vista 3.png","title":"Vista d’insieme residenziale","category":"Residenziale","alt":"Vista dall’alto di complesso residenziale contemporaneo lungo la strada"},
+  {"image":"residential-night","source":"Vista 6.png","title":"Prospettiva notturna","category":"Esterni","alt":"Vista prospettica notturna di complesso residenziale con facciate illuminate"},
+  {"image":"entrance","source":"Vista 7.png","title":"Ingresso e patio","category":"Esterni","alt":"Ingresso residenziale con porta in legno, vetrata e piccolo spazio verde"}
+]

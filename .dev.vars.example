@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local Pages testing. Never commit credentials.
+CONTACT_ENABLED=false
+RESEND_API_KEY=
+# A sender on your verified Resend domain.
+CONTACT_FROM=
+CONTACT_TO=garofalogeom@liberp.it
+# Optional alternative: webhook takes precedence over Resend.
+CONTACT_WEBHOOK_URL=
+CONTACT_WEBHOOK_TOKEN=

@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 export const metadata: Metadata = {
+  // Safari's automatic telephone links alter the HTML before React hydrates,
+  // including the VAT number. Real contact links are already explicit.
+  formatDetection: { telephone: false, email: false, address: false },
   title: siteConfig.title,
   description: siteConfig.description,
   ...(siteConfig.url

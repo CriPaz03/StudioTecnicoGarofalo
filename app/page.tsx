@@ -3,8 +3,10 @@ import Header, {Brand} from "@/components/Header";
 import IdeaToReality from "@/components/IdeaToReality";
 import Services from "@/components/Services";
 import ImmersiveGallery from "@/components/ImmersiveGallery";
+import ProjectFilm from "@/components/ProjectFilm";
+import SelectedProjects from "@/components/SelectedProjects";
 import ContactForm from "@/components/ContactForm";
-import {siteConfig, processSteps, faqs, projects} from "@/lib/site";
+import {siteConfig, processSteps, faqs} from "@/lib/site";
 import {MoveDown, MoveUpRight} from "lucide-react";
 
 export default function Home() {
@@ -64,21 +66,7 @@ export default function Home() {
                                     Progettiamo spazi, li modelliamo e li rendiamo visibili prima
                                     ancora che prendano forma.
                                 </p>
-                                <div className="hero-actions">
-                                    <a className="button" href="#contatti">
-                                        Parliamo del tuo progetto <span aria-hidden="true"><MoveUpRight/></span>
-                                    </a>
-                                    <a className="text-link" href="#progetti">
-                                        Esplora i progetti <span aria-hidden="true"><MoveUpRight/></span>
-                                    </a>
-                                </div>
                             </div>
-                            <a className="scroll-cue" href="#dall-idea-alla-realta">
-                                <span>SCOPRI IL PERCORSO</span>
-                                <span className="scroll-circle" aria-hidden="true">
-                  <MoveDown/>
-                </span>
-                            </a>
                         </div>
                     </div>
                     <div className="hero-footer">
@@ -90,6 +78,7 @@ export default function Home() {
                 <IdeaToReality/>
                 <Services/>
                 <ImmersiveGallery/>
+                <ProjectFilm/>
                 <section className="section process" id="metodo">
                     <div className="section-heading">
                         <p className="eyebrow">04 / UN METODO, PASSO DOPO PASSO</p>
@@ -113,44 +102,7 @@ export default function Home() {
                         ))}
                     </ol>
                 </section>
-                <section className="section selected">
-                    <div className="section-heading selected-heading">
-                        <div>
-                            <p className="eyebrow">NEL DETTAGLIO</p>
-                            <h2>
-                                Spazi diversi.
-                                <br/>
-                                <span className="muted">La stessa attenzione.</span>
-                            </h2>
-                        </div>
-                        <a className="text-link" href="#progetti">
-                            Esplora tutta la gallery <span aria-hidden="true"><MoveUpRight/></span>
-                        </a>
-                    </div>
-                    <div className="selected-grid">
-                        {[projects[1], projects[2], projects[8]].map((p, i) => (
-                            <figure key={p.image}>
-                                <div className="selected-image">
-                                    <Image
-                                        src={`/images/${p.image}.webp`}
-                                        alt={p.alt}
-                                        fill
-                                        sizes="(max-width: 700px) 90vw, (max-width: 1100px) 45vw, 40vw"
-                                    />
-                                </div>
-                                <figcaption>
-                  <span>
-                    <small>
-                      0{i + 1} / {p.category}
-                    </small>
-                      {p.title}
-                  </span>
-                                    <span aria-hidden="true"><MoveUpRight/></span>
-                                </figcaption>
-                            </figure>
-                        ))}
-                    </div>
-                </section>
+                {/*<SelectedProjects/>*/}
                 <section className="section faq" id="domande">
                     <div>
                         <p className="eyebrow">PRIMA DI INIZIARE</p>
@@ -217,7 +169,7 @@ export default function Home() {
                     </div>
                     <ContactForm
                         enabled={Boolean(
-                            process.env.CONTACT_WEBHOOK_URL && siteConfig.privacyUrl,
+                            process.env.NEXT_PUBLIC_CONTACT_ENABLED === "true" && siteConfig.privacyUrl,
                         )}
                     />
                 </section>

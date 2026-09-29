@@ -23,7 +23,7 @@ export default function ContactForm({ enabled }: { enabled: boolean }) {
         signal: AbortSignal.timeout(18000),
       });
       const result = await response.json();
-      if (!response.ok)
+      if (!response.ok || result.success !== true)
         throw new Error(
           result.error || "Invio non riuscito. Riprova tra poco.",
         );

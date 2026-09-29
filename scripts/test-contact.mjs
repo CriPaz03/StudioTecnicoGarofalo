@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 // Local-only smoke checks. No request is sent to a contact provider.
-const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:3001';
+const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:8788';
 if (!['127.0.0.1', 'localhost'].includes(new URL(base).hostname)) throw new Error('Tests only run against localhost.');
 const valid = { name: 'Verifica locale', email: 'test@example.invalid', phone: '', service: 'Progettazione 2D / 3D', message: 'Richiesta di test locale, non inviare.', privacy: 'accepted', website: '' };
 const cases = [
@@ -39,3 +39,17 @@ for (const asset of ['/images/living-day.webp', '/video/blueprint.webp', '/video
 const range = await fetch(`${base}/video/idea-to-reality.mp4`, { headers: { Range: 'bytes=0-1023' } });
 assert.equal(range.status, 206, 'Video seeking needs byte ranges');
 console.log('PASS language, heading, assets, metadata routes and video byte ranges');
+for (const file of ['idea-to-reality.mp4', 'idea-to-reality-mobile.mp4', 'ville.mp4']) {
+  const partial = await fetch(`${base}/video/${file}`, { headers: { Range: 'bytes=0-1023' } });
+  assert.equal(partial.status, 206, file);
+  assert.equal((await partial.arrayBuffer()).byteLength, 1024, file);
+  const suffix = await fetch(`${base}/video/${file}`, { headers: { Range: 'bytes=-128' } });
+  assert.equal(suffix.status, 206);
+  assert.equal((await suffix.arrayBuffer()).byteLength, 128);
+  const invalid = await fetch(`${base}/video/${file}`, { headers: { Range: 'bytes=999999999-' } });
+  assert.equal(invalid.status, 416);
+}
+for (const width of [384, 960, 1920]) {
+  assert.equal((await fetch(`${base}/responsive/living-day-${width}.webp`)).status, 200);
+}
+console.log('PASS: all three videos support bounded/suffix/invalid ranges; responsive assets available.');

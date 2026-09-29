@@ -1,13 +1,20 @@
-import { services } from "@/lib/site";
+export interface ContactEnv {
+  CONTACT_ENABLED?: string;
+  RESEND_API_KEY?: string;
+  CONTACT_FROM?: string;
+  CONTACT_TO?: string;
+  CONTACT_WEBHOOK_URL?: string;
+  CONTACT_WEBHOOK_TOKEN?: string;
+}
 
 const error = (message: string, status: number) =>
-  Response.json({ error: message }, { status });
-export async function POST(request: Request) {
+  Response.json({ error: message }, { status, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+export async function handleContact(request: Request, env: ContactEnv, serviceTitles: readonly string[]) {
+  if (request.method !== "POST") return error("Metodo non consentito.", 405);
   const origin = request.headers.get("origin");
   if (
     origin &&
-    origin !== new URL(request.url).origin &&
-    origin !== process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")
+    origin !== new URL(request.url).origin
   )
     return error("Richiesta non consentita.", 403);
   if (!request.headers.get("content-type")?.includes("application/json"))
@@ -42,29 +49,30 @@ export async function POST(request: Request) {
     message.length > 5000 ||
     field("privacy") !== "accepted" ||
     ![
-      ...services.map((s) => s.title),
+      ...serviceTitles,
       "Vorrei un consiglio sul mio progetto",
     ].includes(service)
   )
     return error("Controlla i campi obbligatori e il consenso privacy.", 422);
-  const endpoint = process.env.CONTACT_WEBHOOK_URL;
-  if (!endpoint || !process.env.NEXT_PUBLIC_PRIVACY_URL)
+  const endpoint = env.CONTACT_WEBHOOK_URL;
+  if (env.CONTACT_ENABLED !== "true" || (!endpoint && !(env.RESEND_API_KEY && env.CONTACT_FROM && env.CONTACT_TO)))
     return error(
       "Il servizio di contatto non è ancora attivo. Nessun messaggio è stato inviato.",
       503,
     );
   try {
-    if (new URL(endpoint).protocol !== "https:")
+    if (endpoint && new URL(endpoint).protocol !== "https:")
       throw new Error("Invalid configuration");
-    const result = await fetch(endpoint, {
+    const result = await fetch(endpoint || "https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(process.env.CONTACT_WEBHOOK_TOKEN
-          ? { Authorization: `Bearer ${process.env.CONTACT_WEBHOOK_TOKEN}` }
+        ...(!endpoint ? { Authorization: `Bearer ${env.RESEND_API_KEY}` } : {}),
+        ...(endpoint && env.CONTACT_WEBHOOK_TOKEN
+          ? { Authorization: `Bearer ${env.CONTACT_WEBHOOK_TOKEN}` }
           : {}),
       },
-      body: JSON.stringify({
+      body: JSON.stringify(endpoint ? {
         name,
         email,
         phone,
@@ -73,6 +81,12 @@ export async function POST(request: Request) {
         privacy: true,
         source: "studio-tecnico-garofalo",
         submittedAt: new Date().toISOString(),
+      } : {
+        from: env.CONTACT_FROM,
+        to: [env.CONTACT_TO],
+        reply_to: email,
+        subject: `Richiesta dal sito: ${service}`,
+        text: `Nome: ${name}\nEmail: ${email}\nTelefono: ${phone || "Non indicato"}\nServizio: ${service}\n\n${message}\n\nConsenso privacy: accettato`,
       }),
       signal: AbortSignal.timeout(12000),
       redirect: "error",
@@ -82,7 +96,11 @@ export async function POST(request: Request) {
         "Non è stato possibile inviare la richiesta. Riprova tra poco.",
         502,
       );
-    return Response.json({ success: true });
+    if (!endpoint) {
+      const accepted = await result.json() as { id?: string };
+      if (!accepted.id) return error("Invio non confermato. Riprova tra poco.", 502);
+    }
+    return Response.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return error(
       "Il servizio non è disponibile al momento. Riprova tra poco.",

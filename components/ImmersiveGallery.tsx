@@ -2,35 +2,54 @@
 import Image from "next/image";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type PointerEvent,
   type KeyboardEvent,
 } from "react";
-import { projects } from "@/lib/site";
-import {MoveDown, MoveUpRight} from "lucide-react";
+import { projects, projectGroups } from "@/lib/site";
+import {MoveUpRight} from "lucide-react";
 
-// Intentionally irregular photographic board, with physical bounds supplied by native scrolling.
-const positions = [
-  [70, 75, 480, 315],
-  [600, 25, 370, 255],
-  [1020, 90, 460, 305],
-  [1530, 40, 320, 370],
-  [80, 450, 300, 390],
-  [440, 355, 540, 350],
-  [1040, 460, 320, 425],
-  [1430, 475, 420, 280],
-  [50, 915, 480, 285],
-  [590, 775, 440, 305],
-  [1090, 940, 380, 280],
-  [1530, 835, 330, 350],
-];
+import { galleryCells } from "@/lib/gallery-layout.mjs";
+
+const filters = [{ id: "tutte", label: "Tutte", categories: [] as string[] }, ...projectGroups];
+
 export default function ImmersiveGallery() {
+  const [filter, setFilter] = useState(0);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const items = filter === 0 ? projects : projects.filter(p => filters[filter].categories.includes(p.category));
+  const onTabKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const keys: Record<string, number> = { ArrowRight: (index + 1) % filters.length, ArrowLeft: (index + filters.length - 1) % filters.length, Home: 0, End: filters.length - 1 };
+    if (!(event.key in keys)) return;
+    event.preventDefault();
+    setFilter(keys[event.key]);
+    tabs.current[keys[event.key]]?.focus({ preventScroll: true });
+  };
+  return <section className="gallery-section" aria-labelledby="gallery-title">
+    <div className="gallery-heading section">
+      <div><p className="eyebrow">03 / ESPLORA I NOSTRI SPAZI</p><h2 id="gallery-title">Prospettive da <em>abitare.</em></h2></div>
+      <p>Ogni immagine, una scelta progettuale.<br />Trova il tuo punto di vista.</p>
+    </div>
+    <div className="gallery-filter-wrap section" id="progetti">
+      <div className="gallery-tabs" role="tablist" aria-label="Categorie della gallery">
+        {filters.map((item, index) => <button key={item.id} ref={node => { tabs.current[index] = node; }} role="tab" id={`gallery-tab-${item.id}`} aria-controls={`gallery-panel-${item.id}`} aria-selected={filter === index} tabIndex={filter === index ? 0 : -1} onClick={() => setFilter(index)} onKeyDown={event => onTabKey(event, index)}>{item.label}</button>)}
+      </div>
+    </div>
+    {filters.map((item, index) => <div key={item.id} role="tabpanel" id={`gallery-panel-${item.id}`} aria-labelledby={`gallery-tab-${item.id}`} hidden={filter !== index}>
+      {filter === index && <GalleryContent items={items} />}
+    </div>)}
+  </section>;
+}
+
+function GalleryContent({ items }: { items: readonly (typeof projects)[number][] }) {
   const viewport = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const drag = useRef({
     active: false,
+    pointerId: -1,
     x: 0,
     y: 0,
     left: 0,
@@ -40,20 +59,50 @@ export default function ImmersiveGallery() {
   const [selected, setSelected] = useState<number | null>(null);
   const isOpen = selected !== null;
   const [dragging, setDragging] = useState(false);
+  const [view, setView] = useState({ x: 0, y: 0, width: 1440, height: 800 });
+  const committedView = useRef(view);
+  const requestedWindow = useRef("0:0");
+  const camera = useRef({ x: 0, y: 0 });
+  const frame = useRef(0);
+  const pan = (x: number, y: number) => {
+    camera.current = { x, y };
+    if (frame.current) return;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      const { x, y } = camera.current;
+      const current = committedView.current;
+      if (canvas.current) canvas.current.style.transform = `translate3d(${current.x - x}px, ${current.y - y}px, 0)`;
+      const scale = current.width < 600 ? 0.62 : 1;
+      const column = Math.floor(x / (490 * scale));
+      const row = Math.floor(y / (370 * scale));
+      const key = `${column}:${row}`;
+      if (requestedWindow.current !== key) {
+        requestedWindow.current = key;
+        setView(previous => ({ ...previous, x: column * 490 * scale, y: row * 370 * scale }));
+      }
+    });
+  };
+  useLayoutEffect(() => {
+    committedView.current = view;
+    if (canvas.current) canvas.current.style.transform = `translate3d(${view.x - camera.current.x}px, ${view.y - camera.current.y}px, 0)`;
+  }, [view]);
   useEffect(() => {
     const el = viewport.current;
-    if (el) {
-      el.scrollLeft = Math.max(0, (el.scrollWidth - el.clientWidth) / 2);
-      el.scrollTop = window.innerWidth < 600 ? 120 : 200;
-    }
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setView(previous => ({ ...previous, width: entry.contentRect.width, height: entry.contentRect.height }));
+    });
+    observer.observe(el);
+    return () => { observer.disconnect(); cancelAnimationFrame(frame.current); };
   }, []);
   useEffect(() => {
     if (!isOpen) return;
+    const fallback = viewport.current;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previous;
-      opener.current?.focus({ preventScroll: true });
+      (opener.current?.isConnected ? opener.current : fallback)?.focus({ preventScroll: true });
     };
   }, [isOpen]);
   const close = () => {
@@ -68,37 +117,37 @@ export default function ImmersiveGallery() {
   };
   const move = (amount: number) =>
     setSelected((i) =>
-      i === null ? null : (i + amount + projects.length) % projects.length,
+      i === null ? null : (i + amount + items.length) % items.length,
     );
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     drag.current.moved = false;
-    if (e.pointerType !== "mouse" || e.button !== 0) return;
-    const el = e.currentTarget;
+    if (!e.isPrimary || e.button !== 0) return;
     drag.current = {
       active: true,
+      pointerId: e.pointerId,
       x: e.clientX,
       y: e.clientY,
-      left: el.scrollLeft,
-      top: el.scrollTop,
+      left: camera.current.x,
+      top: camera.current.y,
       moved: false,
     };
   };
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     const d = drag.current;
-    if (!d.active) return;
+    if (!d.active || d.pointerId !== e.pointerId) return;
     const dx = e.clientX - d.x,
       dy = e.clientY - d.y;
-    if (Math.hypot(dx, dy) > 6) {
+    if (!d.moved && Math.hypot(dx, dy) > 6) {
       d.moved = true;
       setDragging(true);
       e.currentTarget.setPointerCapture(e.pointerId);
     }
     if (d.moved) {
-      e.currentTarget.scrollLeft = d.left - dx;
-      e.currentTarget.scrollTop = d.top - dy;
+      pan(d.left - dx, d.top - dy);
     }
   };
   const onUp = (e: PointerEvent<HTMLDivElement>) => {
+    if (drag.current.pointerId !== e.pointerId) return;
     drag.current.active = false;
     setDragging(false);
     if (e.currentTarget.hasPointerCapture(e.pointerId))
@@ -115,33 +164,12 @@ export default function ImmersiveGallery() {
     const delta = movements[e.key];
     if (delta) {
       e.preventDefault();
-      e.currentTarget.scrollBy({
-        left: delta[0],
-        top: delta[1],
-        behavior: "auto",
-      });
+      pan(camera.current.x + delta[0], camera.current.y + delta[1]);
     }
   };
-  const project = selected === null ? null : projects[selected];
+  const project = selected === null ? null : items[selected];
   return (
-    <section
-      className="gallery-section"
-      id="progetti"
-      aria-labelledby="gallery-title"
-    >
-      <div className="gallery-heading section">
-        <div>
-          <p className="eyebrow">03 / ESPLORA I NOSTRI SPAZI</p>
-          <h2 id="gallery-title">
-            Prospettive da <em>abitare.</em>
-          </h2>
-        </div>
-        <p>
-          Ogni immagine, una scelta progettuale.
-          <br />
-          Trova il tuo punto di vista.
-        </p>
-      </div>
+    <>
       <div className="gallery-shell">
         <div
           ref={viewport}
@@ -149,29 +177,26 @@ export default function ImmersiveGallery() {
           tabIndex={0}
           role="region"
           aria-label="Tavola dei progetti esplorabile"
-          aria-describedby="gallery-instructions"
+          aria-describedby="gallery-instructions gallery-keyboard"
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={onUp}
+          onLostPointerCapture={onUp}
           onPointerLeave={(e) => {
             if (!drag.current.moved) onUp(e);
           }}
           onKeyDown={onKey}
         >
-          <div className="gallery-canvas">
-            {projects.map((p, i) => {
-              const [left, top, width, height] = positions[i];
+          <div ref={canvas} className="gallery-canvas">
+            {galleryCells(view, items.length).map(({ key, index: i, left, top, width, height }) => {
+              const p = items[i];
               return (
                 <button
                   className="gallery-item"
-                  key={p.image}
-                  style={{
-                    left: `calc(${left}px * var(--board-scale))`,
-                    top: `calc(${top}px * var(--board-scale))`,
-                    width: `calc(${width}px * var(--board-scale))`,
-                    height: `calc(${height}px * var(--board-scale))`,
-                  }}
+                  key={`${key}:${p.image}`}
+                  tabIndex={-1}
+                  style={{ left, top, width, height }}
                   onClick={(e) => {
                     if (e.detail === 0) drag.current.moved = false;
                     show(i, e.currentTarget);
@@ -182,7 +207,7 @@ export default function ImmersiveGallery() {
                     src={`/images/${p.image}.webp`}
                     alt={p.alt}
                     fill
-                    sizes="(max-width: 600px) 350px, 540px"
+                    sizes="(max-width: 600px) 280px, 440px"
                     draggable={false}
                   />
                   <span className="gallery-item-label">
@@ -192,22 +217,22 @@ export default function ImmersiveGallery() {
                 </button>
               );
             })}
-            <span className="board-mark" aria-hidden="true">
-              GAROFALO / VISIONI DI PROGETTO
-            </span>
+
           </div>
         </div>
         <div className="gallery-hint" id="gallery-instructions">
-          <span aria-hidden="true">✥</span> Trascina per esplorare{" "}
+          <span aria-hidden="true">✥</span> Esplora in ogni direzione{" "}
           <span className="hint-divider" /> Tocca per scoprire
         </div>
-        <a className="gallery-exit" href="#metodo">
-          Continua il percorso <MoveDown />
+        <a className="gallery-exit" href="#video-progetto">
+          Continua
         </a>
       </div>
+      <p id="gallery-keyboard" className="sr-only">Usa le frecce per muovere la tavola. Per aprire le immagini con la tastiera, scegli Sfoglia tutte le foto. Scorri fuori dalla tavola o scegli Continua il percorso per proseguire.</p>
       <div className="gallery-footnote section">
+        <button className="gallery-browse" onClick={e => { drag.current.moved = false; show(0, e.currentTarget); }}>Sfoglia {items.length === 1 ? "la foto" : `le ${items.length} foto`} ↗</button>
         <span>INTERNI · RESIDENZIALE · VISUALIZZAZIONE</span>
-        <span>12 VISIONI, UN APPROCCIO.</span>
+        <span>{items.length} VISIONI, UN APPROCCIO.</span>
       </div>
       <dialog
         ref={dialog}
@@ -261,7 +286,7 @@ export default function ImmersiveGallery() {
                 </button>
                 <span>
                   {String((selected ?? 0) + 1).padStart(2, "0")} /{" "}
-                  {projects.length}
+                  {items.length}
                 </span>
                 <button
                   onClick={() => move(1)}
@@ -274,6 +299,6 @@ export default function ImmersiveGallery() {
           </>
         )}
       </dialog>
-    </section>
+    </>
   );
 }
