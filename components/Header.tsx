@@ -3,11 +3,11 @@ import {useEffect, useRef, useState} from "react";
 import {navigation} from "@/lib/site";
 import {MoveUpRight} from "lucide-react";
 
-export function Brand() {
+export function Brand({ href = "#" }: { href?: string }) {
     return (
         <a
             className="brand"
-            href="#"
+            href={href}
             aria-label="Studio Tecnico Garofalo, inizio pagina"
         >
             <svg viewBox="0 0 44 44" aria-hidden="true">

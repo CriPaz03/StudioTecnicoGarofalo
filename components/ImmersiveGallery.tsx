@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
+import { flushSync } from "react-dom";
 import {
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   type PointerEvent,
@@ -61,19 +61,33 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
   const isOpen = selected !== null;
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState({ x: 0, y: 0, width: 1440, height: 800 });
-  const committedView = useRef(view);
-  const requestedWindow = useRef("0:0");
+  // Native two-axis scrolling provides touch momentum without a JS drag loop.
+  const origin = useRef({ x: 0, y: 0 });
+  // The server-rendered collage starts inside the visible viewport. Move it
+  // to the middle of the scroll area only once the browser can initialize it.
+  const [renderOrigin, setRenderOrigin] = useState({ x: 20000, y: 20000 });
+  const initialized = useRef(false);
   const camera = useRef({ x: 0, y: 0 });
   const frame = useRef(0);
+  const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestedWindow = useRef("0:0");
+  const centre = 20000;
   const pan = (x: number, y: number) => {
+    const el = viewport.current;
+    if (!el) return;
     camera.current = { x, y };
-    if (frame.current) return;
-    frame.current = requestAnimationFrame(() => {
+    el.scrollLeft = x - origin.current.x + centre;
+    el.scrollTop = y - origin.current.y + centre;
+  };
+  useEffect(() => {
+    const el = viewport.current;
+    if (!el) return;
+    const sync = () => {
       frame.current = 0;
-      const { x, y } = camera.current;
-      const current = committedView.current;
-      if (canvas.current) canvas.current.style.transform = `translate3d(${current.x - x}px, ${current.y - y}px, 0)`;
-      const scale = current.width < 600 ? 0.62 : 1;
+      const x = el.scrollLeft - centre + origin.current.x;
+      const y = el.scrollTop - centre + origin.current.y;
+      camera.current = { x, y };
+      const scale = el.clientWidth < 600 ? 0.62 : 1;
       const column = Math.floor(x / (490 * scale));
       const row = Math.floor(y / (370 * scale));
       const key = `${column}:${row}`;
@@ -81,20 +95,45 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
         requestedWindow.current = key;
         setView(previous => ({ ...previous, x: column * 490 * scale, y: row * 370 * scale }));
       }
-    });
-  };
-  useLayoutEffect(() => {
-    committedView.current = view;
-    if (canvas.current) canvas.current.style.transform = `translate3d(${view.x - camera.current.x}px, ${view.y - camera.current.y}px, 0)`;
-  }, [view]);
-  useEffect(() => {
-    const el = viewport.current;
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      setView(previous => ({ ...previous, width: entry.contentRect.width, height: entry.contentRect.height }));
+    };
+    const recenter = () => {
+      if (drag.current.active) return;
+      if (el.scrollLeft > 5000 && el.scrollLeft < 35000 && el.scrollTop > 5000 && el.scrollTop < 35000) return;
+      sync();
+      origin.current = { ...camera.current };
+      // Reposition cells and scroll origin together, after native momentum ends.
+      flushSync(() => setRenderOrigin({ ...origin.current }));
+      el.scrollLeft = centre;
+      el.scrollTop = centre;
+    };
+    const onScroll = () => {
+      if (!frame.current) frame.current = requestAnimationFrame(sync);
+      if (settle.current) clearTimeout(settle.current);
+      settle.current = setTimeout(recenter, 250);
+    };
+    const observer = new ResizeObserver(() => {
+      if (!initialized.current) {
+        initialized.current = true;
+        flushSync(() => {
+          setRenderOrigin({ x: 0, y: 0 });
+          setView(previous => ({ ...previous, width: el.clientWidth, height: el.clientHeight }));
+        });
+        el.scrollLeft = centre;
+        el.scrollTop = centre;
+        return;
+      }
+      setView(previous => ({ ...previous, width: el.clientWidth, height: el.clientHeight }));
     });
     observer.observe(el);
-    return () => { observer.disconnect(); cancelAnimationFrame(frame.current); };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener("scrollend", recenter);
+    return () => {
+      observer.disconnect();
+      el.removeEventListener("scroll", onScroll);
+      el.removeEventListener("scrollend", recenter);
+      cancelAnimationFrame(frame.current);
+      if (settle.current) clearTimeout(settle.current);
+    };
   }, []);
   useEffect(() => {
     if (!isOpen) return;
@@ -122,6 +161,7 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
       i === null ? null : (i + amount + items.length) % items.length,
     );
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
     drag.current.moved = false;
     if (!e.isPrimary || e.button !== 0) return;
     drag.current = {
@@ -135,6 +175,7 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
     };
   };
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return;
     const d = drag.current;
     if (!d.active || d.pointerId !== e.pointerId) return;
     const dx = e.clientX - d.x,
@@ -184,6 +225,15 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
           onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={onUp}
+          onTouchStart={e => {
+            drag.current.moved = false;
+            drag.current.x = e.touches[0].clientX;
+            drag.current.y = e.touches[0].clientY;
+          }}
+          onTouchMove={e => {
+            const touch = e.touches[0];
+            if (touch && Math.hypot(touch.clientX - drag.current.x, touch.clientY - drag.current.y) > 8) drag.current.moved = true;
+          }}
           onLostPointerCapture={onUp}
           onPointerLeave={(e) => {
             if (!drag.current.moved) onUp(e);
@@ -200,7 +250,7 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
                   tabIndex={-1}
                   onPointerEnter={e => { if (e.pointerType === "mouse" && !drag.current.active) warmPhoto(p); }}
                   onFocus={() => warmPhoto(p)}
-                  style={{ left, top, width, height }}
+                  style={{ left: left + view.x - renderOrigin.x + centre, top: top + view.y - renderOrigin.y + centre, width, height }}
                   onClick={(e) => {
                     if (e.detail === 0) drag.current.moved = false;
                     show(i, e.currentTarget);
@@ -234,7 +284,7 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
       </div>
       <p id="gallery-keyboard" className="sr-only">Usa le frecce per muovere la tavola. Per aprire le immagini con la tastiera, scegli Sfoglia tutte le foto. Scorri fuori dalla tavola o scegli Continua il percorso per proseguire.</p>
       <div className="gallery-footnote section">
-        <button className="gallery-browse" onClick={e => { drag.current.moved = false; show(0, e.currentTarget); }}>Sfoglia {items.length === 1 ? "la foto" : `le ${items.length} foto`} ↗</button>
+        <button className="gallery-browse" onClick={e => { drag.current.moved = false; show(0, e.currentTarget); }}>Sfoglia {items.length === 1 ? "la foto" : `le ${items.length} foto`}</button>
         <span>INTERNI · RESIDENZIALE · VISUALIZZAZIONE</span>
         <span>{items.length} VISIONI, UN APPROCCIO.</span>
       </div>

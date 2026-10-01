@@ -57,9 +57,6 @@ export default function Services() {
               </h3>
               <div id={`service-${i}`} hidden={active !== i}>
                 <p>{s.text}</p>
-                <a className="text-link" href="#contatti">
-                  Parliamone <span aria-hidden="true"><MoveUpRight /></span>
-                </a>
               </div>
             </div>
           ))}

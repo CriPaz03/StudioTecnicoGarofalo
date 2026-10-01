@@ -27,7 +27,7 @@ La cartella `functions/` deve restare nella radice del repository. Non caricare 
 Configurare in Pages prima di costruire:
 
 - `NEXT_PUBLIC_SITE_URL`: origine HTTPS definitiva, senza slash finale. Senza valore, noindex e sitemap vuota.
-- `NEXT_PUBLIC_PRIVACY_URL`: URL della vera informativa approvata dallo studio.
+- `NEXT_PUBLIC_PRIVACY_URL=/privacy`: pagina integrata; è anche il valore predefinito. Lo studio deve verificare il testo e le prassi effettive descritte in `PRIVACY-REVIEW.md` prima della pubblicazione.
 - `NEXT_PUBLIC_CONTACT_ENABLED=true`: abilita il pulsante solo quando è presente anche la privacy.
 - Gli altri `NEXT_PUBLIC_*` in `.env.example` sono override opzionali dei recapiti già presenti.
 

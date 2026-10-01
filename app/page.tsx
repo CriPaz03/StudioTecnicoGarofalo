@@ -124,45 +124,64 @@ export default function Home() {
                         ))}
                     </div>
                 </section>
-                <section className="section contact" id="contatti">
+                <section className="section contact" id="contatti" aria-labelledby="contact-title">
                     <div className="contact-copy">
-                        <p className="eyebrow">05 / IL PROSSIMO PROGETTO</p>
-                        <h2>
+                        <p className="eyebrow">05 / CONTATTI</p>
+                        <h2 id="contact-title">
                             Hai un progetto
                             <br/>
                             <em>in mente?</em>
                         </h2>
                         <p>
-                            Raccontaci cosa vuoi realizzare. Ti aiutiamo a trasformarlo in un
-                            progetto chiaro, concreto e visualizzabile.
+                            Chiamaci, scrivici un’email oppure compila il modulo.
+                            Partiamo dalle tue esigenze per definire il progetto e il servizio più adatto.
                         </p>
-                        <span className="contact-arrow" aria-hidden="true">
-              <MoveUpRight/>
-            </span>
                         <div className="contact-details">
-                            <address className="studio-address">
-                                {siteConfig.address.streetAddress}<br/>
-                                {siteConfig.address.postalCode} {siteConfig.address.addressLocality} ({siteConfig.address.addressRegion})
-                            </address>
-                            <a className="text-link location-link" href={siteConfig.mapsUrl} target="_blank" rel="noopener noreferrer">
-                                Apri la posizione su Google Maps <MoveUpRight aria-hidden="true"/>
-                            </a>
-                            {siteConfig.email && (
-                                <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
-                            )}
                             {siteConfig.phone && (
-                                <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}>
-                                    {siteConfig.phone}
-                                </a>
+                                <div className="contact-channel">
+                                    <p className="contact-label">TELEFONO</p>
+                                    <a className="contact-value" href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}>
+                                        {siteConfig.phone.replace(/(\d{3})(\d{3})(\d{4})$/, "$1 $2 $3")}
+                                        <MoveUpRight aria-hidden="true"/>
+                                    </a>
+                                    <p className="contact-hint">Chiama lo studio</p>
+                                </div>
                             )}
-                            {siteConfig.whatsapp && (
+                            {siteConfig.email && (
+                                <div className="contact-channel">
+                                    <p className="contact-label">EMAIL</p>
+                                    <a className="contact-value" href={`mailto:${siteConfig.email}`}>
+                                        {siteConfig.email}<MoveUpRight aria-hidden="true"/>
+                                    </a>
+                                    <p className="contact-hint">Scrivici direttamente</p>
+                                </div>
+                            )}
+                            <div className="contact-channel">
+                                <p className="contact-label">DOVE SIAMO</p>
                                 <a
-                                    href={`https://wa.me/${siteConfig.whatsapp.replace(/\D/g, "")}`}
+                                    className="contact-value"
+                                    href={siteConfig.mapsUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    Scrivici su WhatsApp <MoveUpRight/>
+                                    <address className="studio-address">
+                                        {siteConfig.address.streetAddress}<br/>
+                                        {siteConfig.address.postalCode} {siteConfig.address.addressLocality} ({siteConfig.address.addressRegion})
+                                    </address>  <MoveUpRight aria-hidden="true"/>
                                 </a>
+                            </div>
+                            {siteConfig.whatsapp && (
+                                <div className="contact-channel">
+                                    <p className="contact-label">WHATSAPP</p>
+                                    <a
+                                        className="contact-value"
+                                        href={`https://wa.me/${siteConfig.whatsapp.replace(/\D/g, "")}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Scrivici su WhatsApp <MoveUpRight aria-hidden="true"/>
+                                    </a>
+                                </div>
                             )}
                         </div>
                         <p className="vat-number">P. IVA {siteConfig.vatId}</p>
@@ -187,7 +206,7 @@ export default function Home() {
                     </a>
                 </div>
                 <address className="footer-contacts">
-                    <a href={siteConfig.mapsUrl} target="_blank" rel="noopener noreferrer">
+                <a href={siteConfig.mapsUrl} target="_blank" rel="noopener noreferrer">
                         {siteConfig.address.streetAddress} · {siteConfig.address.postalCode} {siteConfig.address.addressLocality} ({siteConfig.address.addressRegion})
                     </a>
                     <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}>{siteConfig.phone}</a>

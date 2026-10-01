@@ -22,7 +22,16 @@ export default function ContactForm({ enabled }: { enabled: boolean }) {
         body: JSON.stringify(data),
         signal: AbortSignal.timeout(18000),
       });
-      const result = await response.json();
+      if (!response.headers.get("content-type")?.includes("application/json")) {
+        throw new Error(
+          window.location.port === "3000"
+            ? "Per provare l’invio locale, apri http://localhost:8788 dopo aver avviato npm start."
+            : "Il servizio di invio non risponde correttamente. Nessun invio è stato confermato. Riprova tra poco.",
+        );
+      }
+      const result = await response.json().catch(() => {
+        throw new Error("Risposta del servizio non valida. Nessun invio è stato confermato.");
+      });
       if (!response.ok || result.success !== true)
         throw new Error(
           result.error || "Invio non riuscito. Riprova tra poco.",
@@ -43,7 +52,12 @@ export default function ContactForm({ enabled }: { enabled: boolean }) {
     requestAnimationFrame(() => status.current?.focus());
   }
   return (
-    <form className="contact-form" onSubmit={submit}>
+    <form className="contact-form" onSubmit={submit} aria-labelledby="contact-form-title" aria-busy={state === "loading"}>
+      <div className="contact-form-intro">
+        <h3 id="contact-form-title">Raccontaci il tuo progetto</h3>
+        <p>Lascia i tuoi recapiti e descrivi cosa vuoi realizzare. Useremo questi dati per rispondere alla tua richiesta.</p>
+        <p className="required-note">I campi con * sono obbligatori.</p>
+      </div>
       <div className="form-grid">
         <label>
           Nome <span>*</span>
@@ -122,8 +136,7 @@ export default function ContactForm({ enabled }: { enabled: boolean }) {
           ) : (
             "informativa privacy (in fase di aggiornamento)"
           )}{" "}
-          e acconsento al trattamento dei dati per rispondere alla mia
-          richiesta. *
+          relativa al trattamento dei dati per rispondere alla mia richiesta. *
         </span>
       </label>
       <button

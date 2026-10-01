@@ -18,6 +18,7 @@ globalThis.fetch = async (url, options) => {
   assert.deepEqual(payload.to, [env.CONTACT_TO]);
   assert.ok(payload.text.includes(valid.message));
   assert.equal(options.headers.Authorization, 'Bearer test-secret');
+  assert.equal(options.redirect, 'manual');
   return Response.json({ id: 'mock-id' });
 };
 assert.equal((await invoke(request(valid, 'https://foreign.example'))).status, 403);

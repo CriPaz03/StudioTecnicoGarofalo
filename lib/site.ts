@@ -8,7 +8,7 @@ export const siteConfig = {
     "Studio tecnico a Bitonto: progettazione di appartamenti, modellazione 3D con Revit, render fotorealistici con Lumion, pratiche edilizie CILA e SCIA, accatastamenti e APE.",
   url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "",
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "garofalogeom@liberp.it",
-  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "3331266694",
+  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+39 3331266694",
   vatId: "06579860724",
   address: {
     streetAddress: "Via G. Verdi, 64",
@@ -18,9 +18,10 @@ export const siteConfig = {
     addressCountry: "IT",
   },
   mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Via G. Verdi 64, 70032 Bitonto BA, Italia")}`,
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP || "",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP || "+39 3331266694",
   areaServed: process.env.NEXT_PUBLIC_AREA_SERVED || "",
-  privacyUrl: process.env.NEXT_PUBLIC_PRIVACY_URL || "",
+  privacyUrl: process.env.NEXT_PUBLIC_PRIVACY_URL || "/privacy",
+  privacyUpdatedAt: "2026-10-01",
 };
 export const navigation = [
   ["Servizi", "#servizi"],

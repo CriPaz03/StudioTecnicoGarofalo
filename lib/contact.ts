@@ -86,10 +86,12 @@ export async function handleContact(request: Request, env: ContactEnv, serviceTi
         to: [env.CONTACT_TO],
         reply_to: email,
         subject: `Richiesta dal sito: ${service}`,
-        text: `Nome: ${name}\nEmail: ${email}\nTelefono: ${phone || "Non indicato"}\nServizio: ${service}\n\n${message}\n\nConsenso privacy: accettato`,
+        text: `Nome: ${name}\nEmail: ${email}\nTelefono: ${phone || "Non indicato"}\nServizio: ${service}\n\n${message}\n\nPresa visione informativa privacy: confermata`,
       }),
       signal: AbortSignal.timeout(12000),
-      redirect: "error",
+      // Workers supports manual/follow. Reject 3xx below without forwarding
+      // credentials or form data to a different URL.
+      redirect: "manual",
     });
     if (!result.ok)
       return error(
@@ -101,7 +103,9 @@ export async function handleContact(request: Request, env: ContactEnv, serviceTi
       if (!accepted.id) return error("Invio non confermato. Riprova tra poco.", 502);
     }
     return Response.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
-  } catch {
+  } catch (deliveryError) {
+    // Log the exception type only; never expose credentials or form contents.
+    console.error("Contact delivery exception", deliveryError instanceof Error ? deliveryError.name : "UnknownError");
     return error(
       "Il servizio non è disponibile al momento. Riprova tra poco.",
       502,

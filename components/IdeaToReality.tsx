@@ -2,15 +2,14 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { stages } from "@/lib/site";
-import {MoveDown} from "lucide-react";
 
 export default function IdeaToReality() {
   const section = useRef<HTMLElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const progressBar = useRef<HTMLDivElement>(null);
+  const frameCanvas = useRef<HTMLCanvasElement>(null);
   const [stage, setStage] = useState(0);
   const [failed, setFailed] = useState(false);
-  const [frame, setFrame] = useState(0);
   const [allowMotion, setAllowMotion] = useState(false);
   useEffect(() => {
     const root = section.current,
@@ -71,17 +70,80 @@ export default function IdeaToReality() {
           media.load();
         }
         const sticky = root.querySelector<HTMLElement>(".story-sticky");
+        const surface = frameCanvas.current;
+        const context = surface?.getContext("2d", { alpha: false });
+        if (!surface || !context) return;
         let scrollFrame = 0;
+        let cancelled = false;
+        let range = 1;
+        let inRange = false;
+        let position = 0;
+        let loading = 0;
+        const frames = new Map<number, { image: HTMLImageElement; ready: boolean }>();
+        const draw = () => {
+          const lower = Math.floor(position);
+          const upper = Math.min(59, lower + 1);
+          const first = frames.get(lower);
+          const second = frames.get(upper);
+          const fallback = [...frames.entries()].filter(([, entry]) => entry.ready)
+            .sort(([a], [b]) => Math.abs(a - position) - Math.abs(b - position))[0]?.[1];
+          const base = first?.ready ? first : second?.ready ? second : fallback;
+          if (!base) return;
+          context.globalAlpha = 1;
+          context.drawImage(base.image, 0, 0, surface.width, surface.height);
+          if (first?.ready && second?.ready && upper !== lower) {
+            context.globalAlpha = position - lower;
+            context.drawImage(second.image, 0, 0, surface.width, surface.height);
+            context.globalAlpha = 1;
+          }
+          root.dataset.frame = String(lower + 1);
+        };
+        const warm = () => {
+          // Keep only a small decoded window (about 23 MB at 800 × 450).
+          const wanted = Math.round(position);
+          for (const [index, entry] of frames) {
+            if (entry.ready && Math.abs(index - wanted) > 7) frames.delete(index);
+          }
+          const indices = Array.from({ length: 9 }, (_, i) => wanted + i - 4)
+            .filter(index => index >= 0 && index < 60)
+            .sort((a, b) => Math.abs(a - position) - Math.abs(b - position));
+          for (const index of indices) {
+            if (loading >= 3) break;
+            if (frames.has(index)) continue;
+            const image = new window.Image();
+            const entry = { image, ready: false };
+            frames.set(index, entry);
+            loading++;
+            image.decoding = "async";
+            image.src = `/video/idea-frames/${String(index + 1).padStart(2, "0")}.webp`;
+            void image.decode().then(() => {
+              entry.ready = true;
+            }).catch(() => {
+              // Preserve the last drawn frame if an individual image fails.
+            }).finally(() => {
+              loading--;
+              if (cancelled) return;
+              if (inRange) { draw(); warm(); }
+            });
+          }
+        };
         const update = () => {
           scrollFrame = 0;
-          const range = root.offsetHeight - (sticky?.offsetHeight ?? window.innerHeight);
-          updateProgress(range > 0 ? -root.getBoundingClientRect().top / range : 0);
-          setFrame(Math.min(59, Math.floor(target * 60)));
+          const top = root.getBoundingClientRect().top;
+          inRange = top < window.innerHeight + 400 && top + root.offsetHeight > -400;
+          if (!inRange) return;
+          updateProgress(range > 0 ? -top / range : 0);
+          position = target * 59;
+          warm();
+          draw();
         };
         const schedule = () => {
           if (!scrollFrame) scrollFrame = requestAnimationFrame(update);
         };
-        const resize = new ResizeObserver(schedule);
+        const resize = new ResizeObserver(() => {
+          range = root.offsetHeight - (sticky?.offsetHeight ?? window.innerHeight);
+          schedule();
+        });
         resize.observe(root);
         if (sticky) resize.observe(sticky);
         window.addEventListener("scroll", schedule, { passive: true });
@@ -89,6 +151,9 @@ export default function IdeaToReality() {
         window.visualViewport?.addEventListener("resize", schedule);
         update();
         cleanup = () => {
+          cancelled = true;
+          frames.clear();
+          delete root.dataset.frame;
           cancelAnimationFrame(scrollFrame);
           resize.disconnect();
           window.removeEventListener("scroll", schedule);
@@ -175,13 +240,10 @@ export default function IdeaToReality() {
             sizes="100vw"
             className="story-static-image"
           />
-          <Image
-            src={`/video/idea-frames/${String(frame + 1).padStart(2, "0")}.webp`}
-            alt=""
-            fill
-            sizes="(max-width: 700px) 100vw, 1px"
-            unoptimized
-            loading="eager"
+          <canvas
+            ref={frameCanvas}
+            width={800}
+            height={450}
             className="story-frame"
             aria-hidden="true"
           />
