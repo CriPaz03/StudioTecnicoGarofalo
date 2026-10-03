@@ -26,7 +26,7 @@ La cartella `functions/` deve restare nella radice del repository. Non caricare 
 
 Configurare in Pages prima di costruire:
 
-- `NEXT_PUBLIC_SITE_URL`: origine HTTPS definitiva, senza slash finale. Senza valore, noindex e sitemap vuota.
+- `NEXT_PUBLIC_SITE_URL=https://studiotecnicogarofalo.com`: origine HTTPS definitiva, senza slash finale. Il valore pubblico è versionato in `.env.production` per evitare deploy di produzione senza canonical e con indicizzazione bloccata. Una variabile Cloudflare o `.env.local` ha precedenza: in Production non impostarla vuota. Un override vuoto mantiene noindex e sitemap vuota per le preview.
 - `NEXT_PUBLIC_PRIVACY_URL=/privacy`: pagina integrata; è anche il valore predefinito. Lo studio deve verificare il testo e le prassi effettive descritte in `PRIVACY-REVIEW.md` prima della pubblicazione.
 - `NEXT_PUBLIC_CONTACT_ENABLED=true`: abilita il pulsante solo quando è presente anche la privacy.
 - Gli altri `NEXT_PUBLIC_*` in `.env.example` sono override opzionali dei recapiti già presenti.
@@ -49,6 +49,21 @@ In alternativa, impostare `CONTACT_WEBHOOK_URL` e l'eventuale segreto `CONTACT_W
 Tenere Preview e Production separate: per le preview lasciare NEXT_PUBLIC_SITE_URL vuoto e CONTACT_ENABLED=false, senza credenziali di produzione. Configurare una protezione antiabuso/limite richieste su `/api/contact` prima della pubblicazione; il codice mantiene honeypot, controllo origine e validazione ma non un rate limiter distribuito.
 
 ## Verifiche
+
+### Dominio www e indicizzazione
+
+Per Production, verificare che `NEXT_PUBLIC_SITE_URL` in Cloudflare sia assente (usa `.env.production`) oppure impostato a `https://studiotecnicogarofalo.com`, mai vuoto. Ricostruire e pubblicare il progetto completo, incluse le Pages Functions.
+
+Il redirect `www` richiede configurazione Cloudflare, non basta la build:
+
+1. In Bulk Redirects, creare una lista con sorgente `www.studiotecnicogarofalo.com` e destinazione `https://studiotecnicogarofalo.com`, stato `301`, attivando Preserve query string, Subpath matching e Preserve path suffix.
+2. Creare e attivare la regola Bulk Redirect che usa la lista.
+3. Nei DNS della zona, se `www` non esiste, aggiungere un record `A`, nome `www`, IPv4 `192.0.2.1`, proxy attivo (nuvola arancione). Se esiste già, verificarne l'uso prima di modificarlo. L'indirizzo è quello indicato da Cloudflare per un hostname dedicato al redirect.
+4. Verificare HTTPS e il redirect sia su `/` sia su `/privacy?test=1`: percorso e query devono essere conservati.
+
+Fonte: https://developers.cloudflare.com/pages/how-to/www-redirect/
+
+Dopo il deploy verificare: homepage `index, follow`, canonical sul dominio ufficiale, `robots.txt` con `Allow: /` e `Disallow: /api/`, sitemap con homepage e privacy. Le preview devono continuare a sovrascrivere `NEXT_PUBLIC_SITE_URL` con una stringa vuota.
 
 Eseguire lint, typecheck, build, test del form e preview locale. Su produzione verificare dominio, HTTPS, canonical, sitemap, recapito email, video con richieste Range, gallery touch e Safari reale. Il preview locale non certifica prestazioni o compatibilità del dispositivo fisico.
 
