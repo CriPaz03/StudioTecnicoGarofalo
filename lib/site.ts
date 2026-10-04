@@ -3,9 +3,9 @@ import additionalProjects from "./additional-projects.json";
 export const siteConfig = {
   name: "Studio Tecnico Garofalo",
   title:
-    "Studio Tecnico Garofalo a Bitonto | Progettazione 2D e 3D e render",
+    "Geometra a Bitonto | Studio Tecnico Garofalo",
   description:
-    "Studio tecnico a Bitonto: progettazione di appartamenti, modellazione 3D con Revit, render fotorealistici con Lumion, pratiche edilizie CILA e SCIA, accatastamenti e APE.",
+    "Studio tecnico e geometra a Bitonto: progettazione di interni, pratiche edilizie CILA e SCIA, accatastamenti, certificazioni energetiche APE e render fotorealistici.",
   url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "",
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "garofalogeom@liberp.it",
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+39 3331266694",

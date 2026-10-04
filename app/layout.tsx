@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "it_IT",
     siteName: siteConfig.name,
-    title: "Dall’idea alla realtà. | Studio Tecnico Garofalo",
+    title: siteConfig.title,
     description: siteConfig.description,
     ...(siteConfig.url
       ? {
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.name,
+    title: siteConfig.title,
     description: siteConfig.description,
     ...(siteConfig.url ? { images: ["/images/og.jpg"] } : {}),
   },

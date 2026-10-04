@@ -51,20 +51,21 @@ export default function Home() {
                     />
                     <div className="hero-shade"/>
                     <div className="hero-content">
-                        <p className="eyebrow">
-                            <span className="tiny-line"/> PROGETTAZIONE · VISUALIZZAZIONE ·
-                            SERVIZI TECNICI
-                        </p>
-                        <h1 id="hero-title">
+                        <h1 id="hero-title" className="hero-location">
+                            Studio tecnico e geometra a Bitonto
+                        </h1>
+                        <p className="hero-tagline">
                             Dall’idea
                             <br/>
                             alla <em>realtà.</em>
-                        </h1>
+                        </p>
                         <div className="hero-bottom">
                             <div>
                                 <p className="hero-description">
-                                    Progettiamo spazi, li modelliamo e li rendiamo visibili prima
-                                    ancora che prendano forma.
+                                    Studio Tecnico Garofalo: progettazione degli spazi, pratiche
+                                    edilizie e catastali, certificazioni energetiche APE e render
+                                    fotorealistici. Seguiamo privati, imprese e professionisti
+                                    dalla prima valutazione alla documentazione del progetto.
                                 </p>
                             </div>
                         </div>
@@ -83,8 +84,8 @@ export default function Home() {
                     <div className="section-heading">
                         <p className="eyebrow">04 / UN METODO, PASSO DOPO PASSO</p>
                         <h2>
-                            La precisione è<br/>
-                            <em>un percorso.</em>
+                            Come seguiamo<br/>
+                            <em>il tuo progetto.</em>
                         </h2>
                         <p>
                             Ogni fase prepara la successiva.
@@ -107,9 +108,9 @@ export default function Home() {
                     <div>
                         <p className="eyebrow">PRIMA DI INIZIARE</p>
                         <h2>
-                            Facciamo
+                            Domande sui
                             <br/>
-                            <em>chiarezza.</em>
+                            <em>servizi tecnici.</em>
                         </h2>
                     </div>
                     <div className="faq-list">

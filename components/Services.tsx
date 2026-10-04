@@ -10,14 +10,14 @@ export default function Services() {
       <div className="section-heading">
         <p className="eyebrow">02 / LE NOSTRE COMPETENZE</p>
         <h2>
-          Una visione completa.
+          Servizi tecnici
           <br />
-          <span className="muted">In ogni fase.</span>
+          <span className="muted">a Bitonto.</span>
         </h2>
         <p>
-          Dal primo disegno alla documentazione tecnica.
-          <br />
-          Un percorso che tiene insieme spazio, estetica e precisione.
+          Progettazione 2D e 3D, modellazione BIM e render, pratiche edilizie,
+          accatastamenti e attestati di prestazione energetica: individuiamo
+          il servizio adatto al tuo immobile e all’intervento previsto.
         </p>
       </div>
       <div className="services-layout">
