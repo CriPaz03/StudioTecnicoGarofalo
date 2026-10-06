@@ -7,7 +7,7 @@ export const siteConfig = {
   description:
     "Studio tecnico e geometra a Bitonto: progettazione di interni, pratiche edilizie CILA e SCIA, accatastamenti, certificazioni energetiche APE e render fotorealistici.",
   url: process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "",
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "garofalogeom@liberp.it",
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "garofalo1bcat@gmail.com",
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || "+39 3331266694",
   vatId: "06579860724",
   address: {
