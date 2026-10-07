@@ -38,12 +38,12 @@ export default function ImmersiveGallery() {
       </div>
     </div>
     {filters.map((item, index) => <div key={item.id} role="tabpanel" id={`gallery-panel-${item.id}`} aria-labelledby={`gallery-tab-${item.id}`} hidden={filter !== index}>
-      {filter === index && <GalleryContent items={items} />}
+      {filter === index && <GalleryContent items={items} fixed={item.id === "modelli"} />}
     </div>)}
   </section>;
 }
 
-function GalleryContent({ items }: { items: readonly (typeof projects)[number][] }) {
+function GalleryContent({ items, fixed = false }: { items: readonly (typeof projects)[number][]; fixed?: boolean }) {
   const viewport = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -213,6 +213,28 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
   const project = selected === null ? null : items[selected];
   return (
     <>
+      {fixed ? <>
+        <div className="gallery-static-grid section">
+          {items.map((photo, index) => <figure className="gallery-static-card" key={photo.image}>
+            <button
+              className="gallery-static-photo"
+              onPointerEnter={e => { if (e.pointerType === "mouse") warmPhoto(photo); }}
+              onFocus={() => warmPhoto(photo)}
+              onClick={e => show(index, e.currentTarget)}
+              aria-label={`Ingrandisci: ${photo.alt}`}
+            >
+              <Image src={`/images/${photo.image}.webp`} alt={photo.alt} fill
+                sizes="(max-width: 1000px) 45vw, 23vw" />
+              <span className="gallery-static-expand" aria-hidden="true"><MoveUpRight /></span>
+            </button>
+            <figcaption><span>{photo.title}</span><span>{String(index + 1).padStart(2, "0")}</span></figcaption>
+          </figure>)}
+        </div>
+        <div className="gallery-footnote section">
+          <span>{items.length} SPACCATI</span>
+          <span>Seleziona un’immagine per ingrandirla.</span>
+        </div>
+      </> : <>
       <div className="gallery-shell">
         <div
           ref={viewport}
@@ -288,6 +310,7 @@ function GalleryContent({ items }: { items: readonly (typeof projects)[number][]
         <span>INTERNI · RESIDENZIALE · VISUALIZZAZIONE</span>
         <span>{items.length} VISIONI, UN APPROCCIO.</span>
       </div>
+      </>}
       <dialog
         ref={dialog}
         className="lightbox"

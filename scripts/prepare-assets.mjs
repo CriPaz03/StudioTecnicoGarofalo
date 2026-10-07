@@ -51,11 +51,19 @@ const selected = {
   "kitchen-detail": "Cucina v.1 tip.7.png",
 };
 const additionalProjects = JSON.parse(await fs.readFile('lib/additional-projects.json', 'utf8'));
-const allImages = { ...selected, ...Object.fromEntries(additionalProjects.map(p => [p.image, p.source])) };
-const missing = files.filter(file => !Object.values(allImages).includes(file));
+const cristianProjects = JSON.parse(await fs.readFile('lib/cristian-projects.json', 'utf8'));
+const cristianSource = "render/Cristian 2/";
+const cristianFiles = (await fs.readdir(cristianSource)).filter(f => /\.(png|jpg)$/i.test(f));
+const originalImages = { ...selected, ...Object.fromEntries(additionalProjects.map(p => [p.image, p.source])) };
+const allImages = {
+  ...Object.fromEntries(Object.entries(originalImages).map(([name, file]) => [name, source + file])),
+  ...Object.fromEntries(cristianProjects.map(p => [p.image, cristianSource + p.source])),
+};
+const missing = [...files.map(file => source + file), ...cristianFiles.map(file => cristianSource + file)]
+  .filter(file => !Object.values(allImages).includes(file));
 if (missing.length) throw new Error(`Images missing from gallery: ${missing.join(', ')}`);
 for (const [name, file] of Object.entries(allImages)) {
-  await sharp(source + file)
+  await sharp(file)
     .resize({ width: 1920, withoutEnlargement: true })
     .webp({ quality: 84 })
     .toFile(`public/images/${name}.webp`);
@@ -65,17 +73,7 @@ await sharp(source + selected.living)
   .jpeg({ quality: 85 })
   .toFile("public/images/og.jpg");
 console.log(
-  `Prepared ${Object.keys(allImages).length} images and contact sheet. All ${files.length} supplied photos are covered.`,
+  `Prepared ${Object.keys(allImages).length} images and contact sheet. All ${files.length + cristianFiles.length} supplied photos are covered.`,
 );
 
-const icon = await sharp('app/icon.svg').resize(32, 32).png().toBuffer();
-const header = Buffer.alloc(22);
-header.writeUInt16LE(1, 2);
-header.writeUInt16LE(1, 4);
-header[6] = 32;
-header[7] = 32;
-header.writeUInt16LE(1, 10);
-header.writeUInt16LE(32, 12);
-header.writeUInt32LE(icon.length, 14);
-header.writeUInt32LE(22, 18);
-await fs.writeFile('app/favicon.ico', Buffer.concat([header, icon]));
+await import('./prepare-brand.mjs');

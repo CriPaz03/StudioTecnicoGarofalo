@@ -2,6 +2,7 @@
 import {useEffect, useRef, useState} from "react";
 import {navigation} from "@/lib/site";
 import {MoveUpRight} from "lucide-react";
+import Image from "next/image";
 
 export function Brand({ href = "#" }: { href?: string }) {
     return (
@@ -10,12 +11,15 @@ export function Brand({ href = "#" }: { href?: string }) {
             href={href}
             aria-label="Studio Tecnico Garofalo, inizio pagina"
         >
-            <svg viewBox="0 0 44 44" aria-hidden="true">
-                <path d="M33 10H10v24h23V21H22M4 4h12M4 4v12M40 40H28M40 40V28"/>
-            </svg>
-            <span>
-        STUDIO TECNICO<strong>GAROFALO</strong>
-      </span>
+            <Image
+                className="brand-mark"
+                src="/brand/mark.webp"
+                alt=""
+                width={512}
+                height={512}
+                unoptimized
+            />
+            <span>STUDIO TECNICO<strong>GAROFALO</strong></span>
         </a>
     );
 }

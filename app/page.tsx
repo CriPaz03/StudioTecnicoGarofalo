@@ -16,7 +16,7 @@ export default function Home() {
         name: siteConfig.name,
         description: siteConfig.description,
         ...(siteConfig.url
-            ? {url: siteConfig.url, image: `${siteConfig.url}/images/og.jpg`}
+            ? {url: siteConfig.url, image: `${siteConfig.url}/images/og.jpg`, logo: `${siteConfig.url}/brand/mark.webp`}
             : {}),
         ...(siteConfig.email ? {email: siteConfig.email} : {}),
         ...(siteConfig.phone ? {telephone: siteConfig.phone} : {}),

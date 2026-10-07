@@ -192,15 +192,15 @@ section[id] {
 .brand {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 13px;
   line-height: 1.25;
 }
-.brand svg {
+.brand-mark {
+  display: block;
   width: 40px;
   height: 40px;
-  fill: none;
-  stroke: var(--gold);
-  stroke-width: 1.3;
+  object-fit: contain;
 }
 .brand span {
   font-size: 9px;
@@ -726,6 +726,64 @@ section[id] {
 .gallery-section {
   background: #171715;
   padding-top: 95px;
+}
+.gallery-static-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+  padding-top: 8px;
+  padding-bottom: 0;
+}
+.gallery-static-card {
+  min-width: 0;
+  margin: 0;
+}
+.gallery-static-photo {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  cursor: zoom-in;
+}
+.gallery-static-photo img {
+  object-fit: contain;
+  padding: clamp(8px, 1vw, 16px);
+}
+.gallery-static-expand {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 6px;
+  background: var(--bg);
+  color: var(--gold);
+}
+.gallery-static-expand svg {
+  width: 18px;
+  height: 18px;
+}
+.gallery-static-card figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.gallery-static-card figcaption > span:last-child {
+  color: var(--gold);
+}
+@media (max-width: 1000px) {
+  .gallery-static-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .gallery-static-card figcaption {
+    font-size: 12px;
+    gap: 8px;
+  }
 }
 .gallery-heading {
   display: flex;
@@ -1310,18 +1368,19 @@ section[id] {
   }
 }
 @media (max-width: 1100px) {
+  .brand strong {
+    font-size: 18px;
+  }
+  .brand-mark {
+    width: 33px;
+    height: 33px;
+  }
   .header nav {
     gap: 20px;
   }
   .header-cta {
     gap: 10px;
     font-size: 11px;
-  }
-  .brand strong {
-    font-size: 18px;
-  }
-  .brand svg {
-    width: 33px;
   }
   .hero {
     min-height: 800px;
@@ -1809,8 +1868,9 @@ section[id] {
   .footer .brand strong {
     font-size: 17px;
   }
-  .footer .brand svg {
+  .footer .brand-mark {
     width: 29px;
+    height: 29px;
   }
   .footer-bottom {
     font-size: 9px;

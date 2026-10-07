@@ -1,4 +1,5 @@
 import additionalProjects from "./additional-projects.json";
+import cristianProjects from "./cristian-projects.json";
 
 export const siteConfig = {
   name: "Studio Tecnico Garofalo",
@@ -104,6 +105,7 @@ export const projects = [
     alt: "Cucina lineare bianca e in legno con tavolo da pranzo e luce naturale",
   },
   ...additionalProjects,
+  ...cristianProjects,
 ] as const;
 export const projectGroups = [
   { id: "interni", label: "Interni", categories: ["Living", "Cucine", "Camere", "Bagni", "Interni"] },

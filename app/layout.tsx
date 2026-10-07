@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     ...(siteConfig.url ? { images: ["/images/og.jpg"] } : {}),
   },
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/icon.png" },
 };
 export const viewport: Viewport = {
   themeColor: "#0d0d0c",
